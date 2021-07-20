@@ -63,7 +63,7 @@ bool isSmoothingMethodValid = google::RegisterFlagValidator(
 DEFINE_string(tension_solver, "OSQP",
               "solver used in tension smoothing method");
 
-DEFINE_bool(enable_searching, true, "search before optimization");
+DEFINE_bool(enable_searching, false, "search before optimization");
 
 DEFINE_double(search_lateral_range, 10.0, "max offset when searching");
 
@@ -104,7 +104,7 @@ DEFINE_double(search_deviation_cost, 0.4, "offset from the original ref cost");
 
 ///// Optimization related
 /////
-DEFINE_string(optimization_method, "KP",
+DEFINE_string(optimization_method, "K",
               "optimization method, named by input: "
               "K uses curvature as input, KP uses curvature' as input, and"
               "KCP uses curvarure' and apply some constraints on it");

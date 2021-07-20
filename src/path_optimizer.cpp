@@ -12,7 +12,8 @@
 namespace PathOptimizationNS {
 
 PathOptimizer::PathOptimizer(const State &start_state, const State &end_state,
-                             const Map &map) {
+                             const Map &map)
+    : start_state_(start_state), end_state_(end_state), grid_map_(map) {
   updateConfig();
 }
 
@@ -66,6 +67,40 @@ bool PathOptimizer::solve(const std::vector<State> &reference_points,
     LOG(ERROR) << "Path optimization FAILED!";
     return false;
   }
+}
+
+bool PathOptimizer::solve_smooth_reference_path(
+    const std::vector<State> &reference_points,
+    std::vector<State> *smoothed_reference_path) {
+  if (FLAGS_enable_computation_time_output) std::cout << "------" << std::endl;
+
+  auto t1 = std::clock();
+  if (reference_points.empty()) {
+    LOG(ERROR) << "Empty input, quit path optimization";
+    return false;
+  }
+  reference_path_.clear();
+
+  // Smooth reference path.
+  auto reference_path_smoother =
+      ReferencePathSmoother::create(FLAGS_smoothing_method, reference_points,
+                                    vehicle_state_.getStartState(), grid_map_);
+  bool smoothing_ok =
+      reference_path_smoother->solve(&reference_path_, &smoothed_path_);
+  reference_searching_display_ = reference_path_smoother->display();
+  if (!smoothing_ok) {
+    LOG(ERROR) << "Path optimization FAILED!";
+    return false;
+  }
+
+  auto t2 = std::clock();
+  // Divide reference path into segments;
+  if (!segmentSmoothedPath()) {
+    LOG(ERROR) << "Path optimization FAILED!";
+    return false;
+  }
+  *smoothed_reference_path = smoothed_path_;
+  return true;
 }
 
 bool PathOptimizer::solveWithoutSmoothing(
@@ -124,11 +159,11 @@ bool PathOptimizer::segmentSmoothedPath() {
   double initial_heading_error =
       constraintAngle(vehicle_state_.getStartState().z - first_point.z);
   // If the start heading differs a lot with the ref path, quit.
-  if (fabs(initial_heading_error) > 75 * M_PI / 180) {
-    LOG(ERROR)
-        << "Initial psi error is larger than 75°, quit path optimization!";
-    return false;
-  }
+  //  if (fabs(initial_heading_error) > 75 * M_PI / 180) {
+  //    LOG(ERROR)
+  //        << "Initial psi error is larger than 75°, quit path optimization!";
+  //    return false;
+  //  }
   vehicle_state_.setInitError(initial_offset, initial_heading_error);
 
   double end_distance =
@@ -178,8 +213,10 @@ bool PathOptimizer::segmentSmoothedPath() {
 
 bool PathOptimizer::optimizePath(std::vector<State> *final_path) {
   // Solve problem.
+  LOG(INFO) << "optimization path solver is " << FLAGS_optimization_method;
   auto solver = OsqpSolver::create(FLAGS_optimization_method, reference_path_,
                                    vehicle_state_, size_);
+
   if (solver && !solver->solve(final_path)) {
     LOG(ERROR) << "QP failed.";
     return false;

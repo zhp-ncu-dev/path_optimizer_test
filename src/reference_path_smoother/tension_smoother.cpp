@@ -66,6 +66,7 @@ bool TensionSmoother::smooth(
     return false;
   std::vector<double> result_x_list, result_y_list, result_s_list;
   bool solver_ok{false};
+  LOG(INFO) << "refereneline smoother is " << FLAGS_tension_solver;
   if (FLAGS_tension_solver == "IPOPT") {
     solver_ok = ipoptSmooth(x_list, y_list, angle_list, k_list, s_list,
                             &result_x_list, &result_y_list, &result_s_list);

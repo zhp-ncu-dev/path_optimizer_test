@@ -55,8 +55,10 @@ bool OsqpSolver::solve(std::vector<PathOptimizationNS::State> *optimized_path) {
   Eigen::VectorXd upperBound;
   // Set Hessian matrix.
   setHessianMatrix(&hessian);
+  LOG(INFO) << "Hessian Matrix has been set.";
   // Set state transition matrix, constraint matrix and bound vector.
   setConstraintMatrix(&linearMatrix, &lowerBound, &upperBound);
+  LOG(INFO) << "Constraint Matrix has been set.";
   // Input to solver.
   if (!solver_.data()->setHessianMatrix(hessian)) return false;
   if (!solver_.data()->setGradient(gradient)) return false;

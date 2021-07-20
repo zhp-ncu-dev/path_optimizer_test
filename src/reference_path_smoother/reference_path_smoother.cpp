@@ -51,7 +51,6 @@ bool ReferencePathSmoother::segmentRawReference(
     return false;
   }
   double max_s = s_list_.back();
-  std::cout << "ref path length: " << max_s << std::endl;
   tk::spline x_spline, y_spline;
   x_spline.set_points(s_list_, x_list_);
   y_spline.set_points(s_list_, y_list_);
@@ -117,14 +116,14 @@ double ReferencePathSmoother::getG(
     const PathOptimizationNS::APoint &point,
     const PathOptimizationNS::APoint &parent) const {
   // Obstacle cost.
-  //   grid_map::Position position(point.x, point.y);
+  State position(point.x, point.y);
   double obstacle_cost = 0;
-  //   double distance_to_obs = grid_map_.getObstacleDistance(position);
-  //   double safety_distance = 5;
-  //   if (distance_to_obs < safety_distance) {
-  //     obstacle_cost = (safety_distance - distance_to_obs) / safety_distance *
-  //                     FLAGS_search_obstacle_cost;
-  //   }
+  double distance_to_obs = grid_map_.GetObstacleDistance(position);
+  double safety_distance = 5;
+  if (distance_to_obs < safety_distance) {
+    obstacle_cost = (safety_distance - distance_to_obs) / safety_distance *
+                    FLAGS_search_obstacle_cost;
+  }
   // Deviation cost.
   double offset_cost = fabs(point.offset) / FLAGS_search_lateral_range *
                        FLAGS_search_deviation_cost;
@@ -182,11 +181,10 @@ bool ReferencePathSmoother::modifyInputPoints() {
       point.y = yr + offset * sin(hr + M_PI_2);
       point.layer = i;
       point.offset = offset;
-      //   grid_map::Position position(point.x, point.y);
-      //   if (grid_map_.isInside(position) &&
-      //       grid_map_.getObstacleDistance(position) > FLAGS_circle_radius) {
-      //     point_set.emplace_back(point);
-      //   }
+      State position(point.x, point.y);
+      if (grid_map_.GetObstacleDistance(position) > FLAGS_circle_radius) {
+        point_set.emplace_back(point);
+      }
       offset += FLAGS_search_lateral_spacing;
     }
     sampled_points_.emplace_back(point_set);

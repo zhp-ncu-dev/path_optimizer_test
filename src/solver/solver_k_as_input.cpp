@@ -201,6 +201,7 @@ void SolverKAsInput::setConstraintMatrix(
       Eigen::VectorXd::Constant(horizon_, FLAGS_expected_safety_margin);
   // Set collision bound part 1.
   const auto &bounds = reference_path_.getBounds();
+  LOG(INFO) << "bounds size is " << bounds.size();
   for (size_t i = 0; i != horizon_; ++i) {
     Eigen::Vector3d ld, ud;
     ud << bounds[i].c0.ub, bounds[i].c2.ub, bounds[i].c3.ub;

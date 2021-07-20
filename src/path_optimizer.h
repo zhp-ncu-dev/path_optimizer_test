@@ -24,6 +24,10 @@ class PathOptimizer {
   // Call this to get the optimized path.
   bool solve(const std::vector<State> &reference_points,
              std::vector<State> *final_path);
+
+  bool solve_smooth_reference_path(const std::vector<State> &reference_points,
+                                   std::vector<State> *smoothed_reference_path);
+
   bool solveWithoutSmoothing(const std::vector<State> &reference_points,
                              std::vector<State> *final_path);
 
@@ -40,7 +44,9 @@ class PathOptimizer {
   // Divide smoothed path into segments.
   bool segmentSmoothedPath();
 
-  const Map grid_map_;
+  State start_state_;
+  State end_state_;
+  const Map grid_map_{};
   CollisionChecker collision_checker_;
   ReferencePath reference_path_;
   VehicleState vehicle_state_;
